@@ -1,5 +1,5 @@
 {
-  description = "Comms";
+  description = "Enteec server";
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
