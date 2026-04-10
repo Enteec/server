@@ -24,6 +24,7 @@
           clippy
           rust-analyzer
           glib
+          diesel-cli
         ];
       in
       {
