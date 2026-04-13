@@ -6,14 +6,16 @@ use axum::{Router, routing::get};
 async fn main() {
     let _connection = &mut establish_connection();
 
-    let user = User::new();
-
-    println!("{}", user.uuid);
-    println!("{}", user.name);
-    println!("{}", user.created_at);
-    println!("{}", user.updated_at);
-    println!("{}", user.password_hash);
-    println!("{}", user.salt);
+    {
+        // temp test code remove after using User struct and implementing register
+        let user = User::new();
+        println!("{}", user.uuid);
+        println!("{}", user.name);
+        println!("{}", user.created_at);
+        println!("{}", user.updated_at);
+        println!("{}", user.password_hash);
+        println!("{}", user.salt);
+    }
 
     let app = Router::new().route("/ping", get(ping));
 
