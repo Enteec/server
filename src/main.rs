@@ -1,5 +1,10 @@
+mod api;
 mod db;
-use crate::db::{models::User, *};
+
+use crate::{
+    api::api_routes,
+    db::{models::User, *},
+};
 use axum::{Router, routing::get};
 
 #[tokio::main]
@@ -17,7 +22,9 @@ async fn main() {
         println!("{}", user.salt);
     }
 
-    let app = Router::new().route("/ping", get(ping));
+    let app = Router::new()
+        .nest("/api", api_routes())
+        .route("/ping", get(ping));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
