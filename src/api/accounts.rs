@@ -4,6 +4,9 @@ use serde::Deserialize;
 #[derive(Deserialize)]
 struct NewUserInput {
     name: String,
+    email: String,
+    password: String,
+    password_confirm: String,
 }
 
 pub fn accounts_routes() -> Router {

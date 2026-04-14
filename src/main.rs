@@ -1,26 +1,12 @@
 mod api;
 mod db;
 
-use crate::{
-    api::api_routes,
-    db::{models::User, *},
-};
+use crate::{api::api_routes, db::establish_connection};
 use axum::{Router, routing::get};
 
 #[tokio::main]
 async fn main() {
     let _connection = &mut establish_connection();
-
-    {
-        // temp test code remove after using User struct and implementing register
-        let user = User::new();
-        println!("{}", user.uuid);
-        println!("{}", user.name);
-        println!("{}", user.created_at);
-        println!("{}", user.updated_at);
-        println!("{}", user.password_hash);
-        println!("{}", user.salt);
-    }
 
     let app = Router::new()
         .nest("/api", api_routes())
