@@ -1,3 +1,4 @@
+use axum::http::StatusCode;
 use axum::{Json, Router, routing::post};
 use serde::Deserialize;
 
@@ -13,24 +14,24 @@ pub fn accounts_routes() -> Router {
     Router::new().route("/register", post(register))
 }
 
-async fn register(Json(input): Json<NewUserInput>) -> String {
-   // format!("Received data: {} \nPassword confirm {}\nEmail confirm {}", input.name,pass_check(&input.password ,&input.password_confirm),email_check(&input.email))
+async fn register(Json(input): Json<NewUserInput>) -> (StatusCode, String) {
+    //format!("Received data: {} \nPassword confirm {}\nEmail confirm {}", input.name,pass_check(&input.password ,&input.password_confirm),email_check(&input.email))
     let password = pass_check(&input.password, &input.password_confirm);
     let email = email_check(&input.email);
 
     match password {
-        Ok(_password) => {"Password confirm"},
-        Err(_e) => {"Password not confirm"},
+        Ok(_) => "Password confirm",
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
     };
 
     match email {
-        Ok(_email) => {"Email confirm"},
-        Err(_e) => {"Email not confirm"},
+        Ok(_) => "Email confirm",
+        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
     };
-    input.name
+    (StatusCode::CREATED, input.name)
 }
 
-fn pass_check(password: &str, password_confirm: &str ) -> Result<(), &'static str> {
+fn pass_check(password: &str, password_confirm: &str) -> Result<(), &'static str> {
     if password != password_confirm {
         return Err("Passwords do not match");
     }
@@ -67,7 +68,10 @@ fn email_check(email: &str) -> Result<(), &'static str> {
 
     match (parts.next(), parts.next(), parts.next()) {
         (Some(local), Some(domain), None)
-        if !local.is_empty() && !domain.starts_with('.') && domain.contains('.') => Ok(()),
+            if !local.is_empty() && !domain.starts_with('.') && domain.contains('.') =>
+        {
+            Ok(())
+        }
         _ => Err("Invalid email address"),
     }
 }
