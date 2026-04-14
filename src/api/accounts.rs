@@ -38,24 +38,24 @@ fn pass_check(password: &str, password_confirm: &str ) -> Result<(), &'static st
     Ok(())
 }
 
-fn email_check(email: &str) -> bool {
+fn email_check(email: &str) -> Result<(), &'static str> {
     if email.contains(char::is_whitespace) {
-        return false;
+        return Err("Email contains whitespace");
     }
 
     if email.starts_with('@') || email.starts_with('.') {
-        return false;
+        return Err("Email contains an invalid character");
     }
 
     if email.ends_with('@') || email.ends_with('.') {
-        return false;
+        return Err("Email contains an invalid character");
     }
 
     let mut parts = email.split('@');
 
     match (parts.next(), parts.next(), parts.next()) {
         (Some(local), Some(domain), None)
-        if !local.is_empty() && !domain.starts_with('.') && domain.contains('.') => true,
-        _ => false,
+        if !local.is_empty() && !domain.starts_with('.') && domain.contains('.') => Ok(()),
+        _ => Err("Invalid email address"),
     }
 }
