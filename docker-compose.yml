@@ -1,0 +1,9 @@
+services:
+  db:
+    image: postgres:18
+    restart: always
+    environment:
+      POSTGRES_USER: server
+      POSTGRES_PASSWORD: server
+    ports:
+      - 5432:5432

@@ -24,6 +24,8 @@
           clippy
           rust-analyzer
           glib
+          diesel-cli
+          postgresql
         ];
       in
       {
