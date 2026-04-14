@@ -15,7 +15,19 @@ pub fn accounts_routes() -> Router {
 
 async fn register(Json(input): Json<NewUserInput>) -> String {
    // format!("Received data: {} \nPassword confirm {}\nEmail confirm {}", input.name,pass_check(&input.password ,&input.password_confirm),email_check(&input.email))
-    "Test1".to_string()
+    let password = pass_check(&input.password, &input.password_confirm);
+    let email = email_check(&input.email);
+
+    match password {
+        Ok(_password) => {"Password confirm"},
+        Err(_e) => {"Password not confirm"},
+    };
+
+    match email {
+        Ok(_email) => {"Email confirm"},
+        Err(_e) => {"Email not confirm"},
+    };
+    input.name
 }
 
 fn pass_check(password: &str, password_confirm: &str ) -> Result<(), &'static str> {
