@@ -14,5 +14,9 @@ pub fn accounts_routes() -> Router {
 }
 
 async fn register(Json(input): Json<NewUserInput>) -> String {
-    format!("Received data: {}", input.name)
+    format!("Received data: {} \nPassword confirm {}", input.name,pass_check(&input.password ,&input.password_confirm))
+}
+
+fn pass_check(password: &str, password_confirm: &str ) -> bool {
+    password == password_confirm
 }
