@@ -21,12 +21,12 @@ async fn register(Json(input): Json<NewUserInput>) -> (StatusCode, String) {
 
     match password {
         Ok(_) => "Password confirm",
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+        Err(e) => return (StatusCode::BAD_REQUEST, e.to_string()),
     };
 
     match email {
         Ok(_) => "Email confirm",
-        Err(e) => return (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+        Err(e) => return (StatusCode::BAD_REQUEST, e.to_string()),
     };
     (StatusCode::CREATED, input.name)
 }
