@@ -8,7 +8,6 @@ use uuid::Uuid;
 #[diesel(check_for_backend(diesel::pg::Pg))]
 #[diesel(treat_none_as_null = true)]
 #[diesel(primary_key(uuid))]
-
 pub struct User {
     pub uuid: Uuid,
     pub created_at: NaiveDateTime,
