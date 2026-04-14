@@ -14,11 +14,28 @@ pub fn accounts_routes() -> Router {
 }
 
 async fn register(Json(input): Json<NewUserInput>) -> String {
-    format!("Received data: {} \nPassword confirm {}\nEmail confirm {}", input.name,pass_check(&input.password ,&input.password_confirm),email_check(&input.email))
+   // format!("Received data: {} \nPassword confirm {}\nEmail confirm {}", input.name,pass_check(&input.password ,&input.password_confirm),email_check(&input.email))
+    "Test1".to_string()
 }
 
-fn pass_check(password: &str, password_confirm: &str ) -> bool {
-    password == password_confirm
+fn pass_check(password: &str, password_confirm: &str ) -> Result<(), &'static str> {
+    if password != password_confirm {
+        return Err("Passwords do not match");
+    }
+
+    if password.len() < 8 {
+        return Err("Password too short");
+    }
+
+    if !password.chars().any(|c| c.is_uppercase()) {
+        return Err("Missing uppercase letter");
+    }
+
+    if !password.chars().any(|c| !c.is_alphanumeric()) {
+        return Err("Missing special character");
+    }
+
+    Ok(())
 }
 
 fn email_check(email: &str) -> bool {
