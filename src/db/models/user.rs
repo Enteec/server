@@ -1,6 +1,6 @@
 use crate::db::schema::users;
 use chrono::NaiveDateTime;
-use diesel::prelude::*;
+use diesel::{insert_into, prelude::*, result::Error};
 use uuid::Uuid;
 
 #[derive(Queryable, Selectable, Insertable)]
@@ -14,4 +14,10 @@ pub struct User {
     pub name: String,
     pub password_hash: String,
     pub salt: String,
+}
+
+impl User {
+    pub async fn create(&self, conn: &mut PgConnection) -> Result<usize, Error> {
+        insert_into(users::table).values(self).execute(conn)
+    }
 }
