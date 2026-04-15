@@ -42,8 +42,10 @@ async fn register(
         }
     };
 
-    let _new_user = User::new(&input.name, &input.email, &password_hash, salt.as_str());
-    let _conn = state.db_pool.get().unwrap();
+    let new_user = User::new(&input.name, &input.email, &password_hash, salt.as_str());
+    let conn = &mut state.db_pool.get().unwrap();
+
+    User::create(&new_user, conn).await.unwrap();
 
     (
         StatusCode::CREATED,
