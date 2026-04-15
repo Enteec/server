@@ -15,19 +15,14 @@ pub fn accounts_routes() -> Router {
 }
 
 async fn register(Json(input): Json<NewUserInput>) -> (StatusCode, String) {
-    //format!("Received data: {} \nPassword confirm {}\nEmail confirm {}", input.name,pass_check(&input.password ,&input.password_confirm),email_check(&input.email))
-    let password = pass_check(&input.password, &input.password_confirm);
-    let email = email_check(&input.email);
+    if let Err(e) = pass_check(&input.password, &input.password_confirm) {
+        return (StatusCode::BAD_REQUEST, e.to_string());
+    }
 
-    match password {
-        Ok(_) => "Password confirm",
-        Err(e) => return (StatusCode::BAD_REQUEST, e.to_string()),
-    };
+    if let Err(e) = email_check(&input.email) {
+        return (StatusCode::BAD_REQUEST, e.to_string());
+    }
 
-    match email {
-        Ok(_) => "Email confirm",
-        Err(e) => return (StatusCode::BAD_REQUEST, e.to_string()),
-    };
     (StatusCode::CREATED, input.name)
 }
 
