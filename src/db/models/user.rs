@@ -17,14 +17,14 @@ pub struct User {
 }
 
 impl User {
-    pub fn new(name: &str, password: &str, salt: &str) -> Self {
+    pub fn new(name: &str, password_hash: &str, salt: &str) -> Self {
         let now = Utc::now().naive_utc();
         Self {
             uuid: uuid::Uuid::new_v4(),
             created_at: now,
             updated_at: now,
             name: name.to_string(),
-            password_hash: password.to_string(),
+            password_hash: password_hash.to_string(),
             salt: salt.to_string(),
         }
     }
