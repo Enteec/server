@@ -1,7 +1,13 @@
+use argon2::{
+    Argon2,
+    password_hash::{Error, PasswordHasher, SaltString, rand_core::OsRng},
+};
 use axum::http::StatusCode;
 use axum::{Json, Router, routing::post};
 use serde::Deserialize;
 use serde_json::{Value, json};
+
+use crate::db::models::user::User;
 
 #[derive(Deserialize)]
 struct NewUserInput {
@@ -24,12 +30,26 @@ async fn register(Json(input): Json<NewUserInput>) -> (StatusCode, Json<Value>) 
         return (StatusCode::BAD_REQUEST, Json(json!({"error": e})));
     }
 
+    let (password_hash, salt) = match hash_password(&input.password) {
+        Ok((hash, salt)) => (hash, salt),
+        Err(e) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": e.to_string()})),
+            );
+        }
+    };
+
+    let new_user = User::new(&input.name, &password_hash, salt.as_str());
+
     (
         StatusCode::CREATED,
         Json(json!({
             "status": "success",
             "data": {
-                "name": input.name,
+                "name": new_user.name,
+                "hash": new_user.password_hash,
+                "salt": new_user.salt,
             }
         })),
     )
@@ -78,4 +98,13 @@ fn email_check(email: &str) -> Result<(), &'static str> {
         }
         _ => Err("Invalid email address"),
     }
+}
+
+fn hash_password(password: &str) -> Result<(String, SaltString), Error> {
+    let salt = SaltString::generate(&mut OsRng);
+    let argon2 = Argon2::default();
+    let hash = argon2
+        .hash_password(password.as_bytes(), &salt)?
+        .to_string();
+    Ok((hash, salt))
 }
