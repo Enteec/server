@@ -26,6 +26,7 @@
           glib
           diesel-cli
           postgresql
+          httpie
         ];
       in
       {
