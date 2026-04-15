@@ -1,23 +1,26 @@
+mod api;
 mod db;
-use crate::db::{models::User, *};
-use axum::{Router, routing::get};
+
+use crate::{
+    api::api_routes,
+    db::{DbPool, create_pool},
+};
+use axum::Router;
+
+#[derive(Clone)]
+pub struct AppState {
+    pub db_pool: DbPool,
+}
 
 #[tokio::main]
 async fn main() {
-    let _connection = &mut establish_connection();
+    let pool = create_pool();
 
-    {
-        // temp test code remove after using User struct and implementing register
-        let user = User::new();
-        println!("{}", user.uuid);
-        println!("{}", user.name);
-        println!("{}", user.created_at);
-        println!("{}", user.updated_at);
-        println!("{}", user.password_hash);
-        println!("{}", user.salt);
-    }
+    let app_state = AppState { db_pool: pool };
 
-    let app = Router::new().route("/ping", get(ping));
+    let app = Router::new()
+        .nest("/api", api_routes())
+        .with_state(app_state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
@@ -26,8 +29,4 @@ async fn main() {
     axum::serve(listener, app)
         .await
         .expect("Failed to start a server!");
-}
-
-async fn ping() -> &'static str {
-    "pong"
 }

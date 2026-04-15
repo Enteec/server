@@ -26,6 +26,8 @@
           glib
           diesel-cli
           postgresql
+          httpie
+          rainfrog
         ];
       in
       {
