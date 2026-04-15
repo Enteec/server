@@ -40,16 +40,14 @@ async fn register(Json(input): Json<NewUserInput>) -> (StatusCode, Json<Value>) 
         }
     };
 
-    let new_user = User::new(&input.name, &password_hash, salt.as_str());
+    User::new(&input.name, &input.email, &password_hash, salt.as_str());
 
     (
         StatusCode::CREATED,
         Json(json!({
             "status": "success",
             "data": {
-                "name": new_user.name,
-                "hash": new_user.password_hash,
-                "salt": new_user.salt,
+                "message": "User registered"
             }
         })),
     )

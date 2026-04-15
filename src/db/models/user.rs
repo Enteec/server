@@ -12,18 +12,20 @@ pub struct User {
     pub created_at: NaiveDateTime,
     pub updated_at: NaiveDateTime,
     pub name: String,
+    pub email: String,
     pub password_hash: String,
     pub salt: String,
 }
 
 impl User {
-    pub fn new(name: &str, password_hash: &str, salt: &str) -> Self {
+    pub fn new(name: &str, email: &str, password_hash: &str, salt: &str) -> Self {
         let now = Utc::now().naive_utc();
         Self {
             uuid: uuid::Uuid::new_v4(),
             created_at: now,
             updated_at: now,
             name: name.to_string(),
+            email: email.to_string(),
             password_hash: password_hash.to_string(),
             salt: salt.to_string(),
         }
