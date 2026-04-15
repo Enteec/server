@@ -1,6 +1,7 @@
 use axum::http::StatusCode;
 use axum::{Json, Router, routing::post};
 use serde::Deserialize;
+use serde_json::{Value, json};
 
 #[derive(Deserialize)]
 struct NewUserInput {
@@ -14,16 +15,24 @@ pub fn accounts_routes() -> Router {
     Router::new().route("/register", post(register))
 }
 
-async fn register(Json(input): Json<NewUserInput>) -> (StatusCode, String) {
+async fn register(Json(input): Json<NewUserInput>) -> (StatusCode, Json<Value>) {
     if let Err(e) = pass_check(&input.password, &input.password_confirm) {
-        return (StatusCode::BAD_REQUEST, e.to_string());
+        return (StatusCode::BAD_REQUEST, Json(json!({"error": e})));
     }
 
     if let Err(e) = email_check(&input.email) {
-        return (StatusCode::BAD_REQUEST, e.to_string());
+        return (StatusCode::BAD_REQUEST, Json(json!({"error": e})));
     }
 
-    (StatusCode::CREATED, input.name)
+    (
+        StatusCode::CREATED,
+        Json(json!({
+            "status": "success",
+            "data": {
+                "name": input.name,
+            }
+        })),
+    )
 }
 
 fn pass_check(password: &str, password_confirm: &str) -> Result<(), &'static str> {
