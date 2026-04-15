@@ -2,12 +2,11 @@ use argon2::{
     Argon2,
     password_hash::{Error, PasswordHasher, SaltString, rand_core::OsRng},
 };
-use axum::http::StatusCode;
-use axum::{Json, Router, routing::post};
+use axum::{Json, Router, extract::State, http::StatusCode, routing::post};
 use serde::Deserialize;
 use serde_json::{Value, json};
 
-use crate::db::models::user::User;
+use crate::{AppState, db::models::user::User};
 
 #[derive(Deserialize)]
 struct NewUserInput {
@@ -17,11 +16,14 @@ struct NewUserInput {
     password_confirm: String,
 }
 
-pub fn accounts_routes() -> Router {
+pub fn accounts_routes() -> Router<AppState> {
     Router::new().route("/register", post(register))
 }
 
-async fn register(Json(input): Json<NewUserInput>) -> (StatusCode, Json<Value>) {
+async fn register(
+    State(state): State<AppState>,
+    Json(input): Json<NewUserInput>,
+) -> (StatusCode, Json<Value>) {
     if let Err(e) = pass_check(&input.password, &input.password_confirm) {
         return (StatusCode::BAD_REQUEST, Json(json!({"error": e})));
     }
@@ -40,7 +42,8 @@ async fn register(Json(input): Json<NewUserInput>) -> (StatusCode, Json<Value>) 
         }
     };
 
-    User::new(&input.name, &input.email, &password_hash, salt.as_str());
+    let _new_user = User::new(&input.name, &input.email, &password_hash, salt.as_str());
+    let _conn = state.db_pool.get().unwrap();
 
     (
         StatusCode::CREATED,
