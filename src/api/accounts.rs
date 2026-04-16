@@ -1,12 +1,12 @@
 use argon2::{
     Argon2,
-    password_hash::{Error, PasswordHasher, SaltString, rand_core::OsRng},
+    password_hash::{PasswordHasher, SaltString, rand_core::OsRng},
 };
 use axum::{Json, Router, extract::State, http::StatusCode, routing::post};
 use serde::Deserialize;
 use serde_json::{Value, json};
 
-use crate::{AppState, db::models::user::User};
+use crate::{AppState, db::models::user::User, errors::RegisterError};
 
 #[derive(Deserialize)]
 struct NewUserInput {
@@ -23,44 +23,19 @@ pub fn accounts_routes() -> Router<AppState> {
 async fn register(
     State(state): State<AppState>,
     Json(input): Json<NewUserInput>,
-) -> (StatusCode, Json<Value>) {
-    if let Err(e) = pass_check(&input.password, &input.password_confirm) {
-        return (StatusCode::BAD_REQUEST, Json(json!({"error": e})));
-    }
+) -> Result<(StatusCode, Json<Value>), RegisterError> {
+    pass_check(&input.password, &input.password_confirm)?;
+    email_check(&input.email)?;
 
-    if let Err(e) = email_check(&input.email) {
-        return (StatusCode::BAD_REQUEST, Json(json!({"error": e})));
-    }
-
-    let (password_hash, salt) = match hash_password(&input.password) {
-        Ok((hash, salt)) => (hash, salt),
-        Err(e) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            );
-        }
-    };
+    let (password_hash, salt) = hash_password(&input.password)?;
 
     let new_user = User::new(&input.name, &input.email, &password_hash, salt.as_str());
-    let conn = &mut match state.db_pool.get() {
-        Ok(conn) => conn,
-        Err(e) => {
-            return (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                Json(json!({"error": e.to_string()})),
-            );
-        }
-    };
 
-    if let Err(e) = User::create(&new_user, conn).await {
-        return (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json!({"error": e.to_string()})),
-        );
-    }
+    let conn = &mut state.db_pool.get()?;
 
-    (
+    User::create(&new_user, conn).await?;
+
+    Ok((
         StatusCode::CREATED,
         Json(json!({
             "status": "success",
@@ -68,40 +43,40 @@ async fn register(
                 "message": "User registered"
             }
         })),
-    )
+    ))
 }
 
-fn pass_check(password: &str, password_confirm: &str) -> Result<(), &'static str> {
+fn pass_check(password: &str, password_confirm: &str) -> Result<(), RegisterError> {
     if password != password_confirm {
-        return Err("Passwords do not match");
+        return Err(RegisterError::PasswordsDontMatch);
     }
 
     if password.len() < 8 {
-        return Err("Password too short");
+        return Err(RegisterError::WeakPassword);
     }
 
     if !password.chars().any(|c| c.is_uppercase()) {
-        return Err("Missing uppercase letter");
+        return Err(RegisterError::WeakPassword);
     }
 
     if !password.chars().any(|c| !c.is_alphanumeric()) {
-        return Err("Missing special character");
+        return Err(RegisterError::WeakPassword);
     }
 
     Ok(())
 }
 
-fn email_check(email: &str) -> Result<(), &'static str> {
+fn email_check(email: &str) -> Result<(), RegisterError> {
     if email.contains(char::is_whitespace) {
-        return Err("Email contains whitespace");
+        return Err(RegisterError::InvalidEmail);
     }
 
     if email.starts_with('@') || email.starts_with('.') {
-        return Err("Email contains an invalid character");
+        return Err(RegisterError::InvalidEmail);
     }
 
     if email.ends_with('@') || email.ends_with('.') {
-        return Err("Email contains an invalid character");
+        return Err(RegisterError::InvalidEmail);
     }
 
     let mut parts = email.split('@');
@@ -112,11 +87,11 @@ fn email_check(email: &str) -> Result<(), &'static str> {
         {
             Ok(())
         }
-        _ => Err("Invalid email address"),
+        _ => Err(RegisterError::InvalidEmail),
     }
 }
 
-fn hash_password(password: &str) -> Result<(String, SaltString), Error> {
+fn hash_password(password: &str) -> Result<(String, SaltString), RegisterError> {
     let salt = SaltString::generate(&mut OsRng);
     let argon2 = Argon2::default();
     let hash = argon2
