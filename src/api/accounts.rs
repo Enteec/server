@@ -43,9 +43,22 @@ async fn register(
     };
 
     let new_user = User::new(&input.name, &input.email, &password_hash, salt.as_str());
-    let conn = &mut state.db_pool.get().unwrap();
+    let conn = &mut match state.db_pool.get() {
+        Ok(conn) => conn,
+        Err(e) => {
+            return (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                Json(json!({"error": e.to_string()})),
+            );
+        }
+    };
 
-    User::create(&new_user, conn).await.unwrap();
+    if let Err(e) = User::create(&new_user, conn).await {
+        return (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            Json(json!({"error": e.to_string()})),
+        );
+    }
 
     (
         StatusCode::CREATED,
