@@ -1,5 +1,6 @@
 mod api;
 mod db;
+mod errors;
 
 use crate::{
     api::api_routes,
