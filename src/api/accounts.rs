@@ -29,7 +29,7 @@ async fn register(
 
     let conn = &mut state.db_pool.get()?;
 
-    if User::find_by_name(&input.name, conn).await?.is_some() {
+    if User::find_by_name(&input.name, conn)?.is_some() {
         return Err(RegisterError::UserExists);
     }
 
@@ -37,7 +37,7 @@ async fn register(
 
     let new_user = User::new(&input.name, &input.email, &password_hash, salt.as_str());
 
-    User::create(&new_user, conn).await?;
+    User::create(&new_user, conn)?;
 
     Ok((
         StatusCode::CREATED,
@@ -59,7 +59,7 @@ fn pass_check(password: &str, password_confirm: &str) -> Result<(), RegisterErro
         return Err(RegisterError::WeakPassword);
     }
 
-    if !password.chars().any(|c| c.is_uppercase()) {
+    if !password.chars().any(char::is_uppercase) {
         return Err(RegisterError::WeakPassword);
     }
 
