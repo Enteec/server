@@ -33,11 +33,11 @@ impl User {
 }
 
 impl User {
-    pub async fn create(&self, conn: &mut PgConnection) -> Result<usize, Error> {
+    pub fn create(&self, conn: &mut PgConnection) -> Result<usize, Error> {
         insert_into(users::table).values(self).execute(conn)
     }
 
-    pub async fn find_by_name(name: &str, conn: &mut PgConnection) -> Result<Option<User>, Error> {
+    pub fn find_by_name(name: &str, conn: &mut PgConnection) -> Result<Option<User>, Error> {
         users::table
             .filter(users::name.eq(name))
             .first::<Self>(conn)
