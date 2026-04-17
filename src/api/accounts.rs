@@ -29,7 +29,7 @@ async fn register(
 
     let conn = &mut state.db_pool.get()?;
 
-    if let Some(..) = User::find_by_name(&input.name, conn).await? {
+    if User::find_by_name(&input.name, conn).await?.is_some() {
         return Err(RegisterError::UserExists);
     }
 
