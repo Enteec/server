@@ -27,11 +27,15 @@ async fn register(
     pass_check(&input.password, &input.password_confirm)?;
     email_check(&input.email)?;
 
+    let conn = &mut state.db_pool.get()?;
+
+    if User::find_by_name(&input.name, conn).await?.is_some() {
+        return Err(RegisterError::UserExists);
+    }
+
     let (password_hash, salt) = hash_password(&input.password)?;
 
     let new_user = User::new(&input.name, &input.email, &password_hash, salt.as_str());
-
-    let conn = &mut state.db_pool.get()?;
 
     User::create(&new_user, conn).await?;
 

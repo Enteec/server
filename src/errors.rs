@@ -10,6 +10,7 @@ use diesel::result::Error as DieselError;
 use r2d2::Error as R2d2Error;
 
 pub enum RegisterError {
+    UserExists,
     WeakPassword,
     PasswordsDontMatch,
     InvalidEmail,
@@ -21,6 +22,10 @@ pub enum RegisterError {
 impl IntoResponse for RegisterError {
     fn into_response(self) -> Response {
         let (code, message) = match self {
+            RegisterError::UserExists => (
+                StatusCode::BAD_REQUEST,
+                "User with this name already exists",
+            ),
             RegisterError::WeakPassword => (StatusCode::BAD_REQUEST, "Weak password"),
             RegisterError::PasswordsDontMatch => {
                 (StatusCode::BAD_REQUEST, "Passwords do not match")
