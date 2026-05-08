@@ -47,7 +47,7 @@ async fn handle_socket(mut socket: WebSocket) {
     while let Some(Ok(msg)) = socket.recv().await {
         match msg {
             Message::Text(text) => {
-                println!("Received: {}", text);
+                println!("Received: {text}");
                 if socket
                     .send(Message::Text("Hello from server!".into()))
                     .await
