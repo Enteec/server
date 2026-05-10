@@ -13,6 +13,8 @@ use axum::{
     response::Response,
     routing::any,
 };
+use tracing::info;
+use tracing_subscriber::EnvFilter;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -21,6 +23,14 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::try_from_default_env()
+                .or_else(|_| EnvFilter::try_new("info"))
+                .unwrap(),
+        )
+        .init();
+
     let pool = create_pool();
 
     let app_state = AppState { db_pool: pool };
@@ -33,6 +43,7 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
         .expect("Failed to listen on IP:PORT!");
+    info!("Listening on http://{}", listener.local_addr().unwrap());
 
     axum::serve(listener, app)
         .await

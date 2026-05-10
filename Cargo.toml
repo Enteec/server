@@ -15,3 +15,5 @@ serde_json = { version = "1.0.149" }
 argon2 = { version = "0.5.3" }
 rand_core = { version = "0.6.4", features = ["getrandom"] }
 r2d2 = { version = "0.8.10" }
+tracing-subscriber = { version = "0.3.23", features = ["env-filter"] }
+tracing = { version = "0.1.44" }
