@@ -13,6 +13,7 @@ use axum::{
     response::Response,
     routing::any,
 };
+use tracing::info;
 use tracing_subscriber::EnvFilter;
 
 #[derive(Clone)]
@@ -42,6 +43,7 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000")
         .await
         .expect("Failed to listen on IP:PORT!");
+    info!("Listening on http://{}", listener.local_addr().unwrap());
 
     axum::serve(listener, app)
         .await
