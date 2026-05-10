@@ -50,15 +50,15 @@ impl Display for RegisterError {
             RegisterError::InvalidEmail => write!(f, "invalid email address"),
 
             RegisterError::HashError(err) => {
-                write!(f, "{}", err)
+                write!(f, "{err}")
             }
 
             RegisterError::DbConnectionError(err) => {
-                write!(f, "{}", err)
+                write!(f, "{err}")
             }
 
             RegisterError::DbError(err) => {
-                write!(f, "{}", err)
+                write!(f, "{err}")
             }
         }
     }
