@@ -13,6 +13,7 @@ use axum::{
     response::Response,
     routing::any,
 };
+use tracing_subscriber::EnvFilter;
 
 #[derive(Clone)]
 pub struct AppState {
@@ -21,6 +22,14 @@ pub struct AppState {
 
 #[tokio::main]
 async fn main() {
+    tracing_subscriber::fmt()
+        .with_env_filter(
+            EnvFilter::try_from_default_env()
+                .or_else(|_| EnvFilter::try_new("info"))
+                .unwrap(),
+        )
+        .init();
+
     let pool = create_pool();
 
     let app_state = AppState { db_pool: pool };
