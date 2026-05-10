@@ -5,6 +5,7 @@ use argon2::{
 use axum::{Json, Router, extract::State, http::StatusCode, routing::post};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use tracing::{debug, error, info};
 
 use crate::{AppState, db::models::user::User, errors::RegisterError};
 
@@ -24,20 +25,35 @@ async fn register(
     State(state): State<AppState>,
     Json(input): Json<NewUserInput>,
 ) -> Result<(StatusCode, Json<Value>), RegisterError> {
-    pass_check(&input.password, &input.password_confirm)?;
-    email_check(&input.email)?;
+    pass_check(&input.password, &input.password_confirm).map_err(|err| {
+        debug!(error = %err, "registration failed");
+        err
+    })?;
 
-    let conn = &mut state.db_pool.get()?;
+    email_check(&input.email).map_err(|err| {
+        debug!(error = %err, "registration failed");
+        err
+    })?;
+
+    let conn = &mut state.db_pool.get().map_err(|err| {
+        error!(error = %err, "failed to get database connection from pool");
+        err
+    })?;
 
     if User::find_by_name(&input.name, conn)?.is_some() {
+        debug!(error = %RegisterError::UserExists, "registration failed");
         return Err(RegisterError::UserExists);
     }
 
-    let (password_hash, salt) = hash_password(&input.password)?;
+    let (password_hash, salt) = hash_password(&input.password).map_err(|err| {
+        error!(error = %err, "failed to hash password");
+        err
+    })?;
 
     let new_user = User::new(&input.name, &input.email, &password_hash, salt.as_str());
 
     User::create(&new_user, conn)?;
+    info!("Registered new user");
 
     Ok((
         StatusCode::CREATED,
